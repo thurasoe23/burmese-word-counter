@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Burmese Word Counter</title>
+<meta name="description" content="Free Burmese (Myanmar) word counter. Count words, syllables and sentences, and convert Zawgyi to Unicode. Runs in your browser.">
+<meta name="theme-color" content="#1d2a2a">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Burmese Word Counter">
+<meta property="og:description" content="Count words, syllables and sentences in Burmese text, and convert Zawgyi to Unicode.">
+<meta property="og:image" content="og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one working column — header with language switch, input, counts, split view, then a short FAQ */
+:root {
+  --bg: #f5f6f4;
+  --surface: #ffffff;
+  --ink: #1d2a2a;
+  --muted: #5b6a68;
+  --line: #d9dfdc;
+  --accent: #b4580e;
+  --accent-soft: #f6e6d4;
+  --on-accent: #ffffff;
+  --chip-a: #e7eeec;
+  --chip-b: #f3ebe0;
+  --warn-bg: #fff3d6;
+  --warn-ink: #6e4b00;
+  --ok-bg: #e3f1e8;
+  --ok-ink: #1f5b36;
+  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-my: "Noto Sans Myanmar", "Myanmar Text", "Padauk", "Myanmar MN", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131a1a; --surface: #1b2423; --ink: #e6ecea; --muted: #9aa9a6; --line: #2e3a39;
+    --accent: #f0a35a; --accent-soft: #3a2a1a; --on-accent: #1b1208; --chip-a: #22302e; --chip-b: #2f2a22;
+    --warn-bg: #3a3017; --warn-ink: #f2d38a; --ok-bg: #17321f; --ok-ink: #9fdcb1; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131a1a; --surface: #1b2423; --ink: #e6ecea; --muted: #9aa9a6; --line: #2e3a39;
+  --accent: #f0a35a; --accent-soft: #3a2a1a; --on-accent: #1b1208; --chip-a: #22302e; --chip-b: #2f2a22;
+  --warn-bg: #3a3017; --warn-ink: #f2d38a; --ok-bg: #17321f; --ok-ink: #9fdcb1; color-scheme: dark;
+}
+
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+html[lang="my"] body { font-family: var(--font-my), var(--font-ui); }
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.mark {
+  width: 46px; height: 46px; border-radius: 50%; flex: none;
+  border: 2px solid var(--accent); display: grid; place-items: center;
+  font-family: var(--font-my); font-size: 23px; color: var(--accent); line-height: 1;
+}
+h1 { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; line-height: 1.3; }
+html[lang="my"] h1 { font-size: 1.3rem; letter-spacing: 0; line-height: 1.7; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 0.93rem; line-height: 1.6; }
+html[lang="my"] .sub { line-height: 1.9; }
+
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; padding: 3px; background: var(--surface); }
+.lang button { border: 0; border-radius: 99px; padding: 4px 12px; background: transparent; color: var(--muted); }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.lang button:hover { color: var(--ink); }
+.lang button[aria-pressed="true"]:hover { color: var(--on-accent); }
+.lang .my { font-family: var(--font-my); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.input { position: relative; }
+.input.drag { border-color: var(--accent); border-style: dashed; }
+.input-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px 0; }
+.label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+html[lang="my"] .label { text-transform: none; letter-spacing: 0; font-size: 0.82rem; }
+.tag { font-size: 0.75rem; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 99px; }
+textarea {
+  display: block; width: 100%; box-sizing: border-box; min-height: 190px; resize: vertical;
+  border: 0; background: transparent; color: var(--ink); padding: 10px 14px 14px;
+  font-family: var(--font-my); font-size: 1.1rem; line-height: 2;
+}
+textarea:focus { outline: none; }
+.panel.input:focus-within { border-color: var(--accent); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 0 14px 14px; }
+.actions .note { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
+
+button, .btn {
+  font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  padding: 6px 12px; border-radius: 8px; line-height: 1.5;
+}
+button:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
+button:focus-visible, .btn:focus-within, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.btn { position: relative; display: inline-block; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+button.primary:hover { color: var(--on-accent); filter: brightness(1.08); }
+
+.banner { border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; line-height: 1.6; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.banner p { margin: 0; flex: 1; min-width: 220px; }
+.banner.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.banner.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.banner button { background: transparent; border-color: currentColor; color: inherit; }
+.banner button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.stats { display: grid; grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 680px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.stat.primary { border-color: var(--accent); }
+.num { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; font-family: var(--font-ui); }
+html[lang="my"] .num { font-family: var(--font-my), var(--font-ui); }
+.stat.primary .num { color: var(--accent); font-size: 2.4rem; }
+.hint { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.naive { font-size: 0.8rem; color: var(--ink); line-height: 1.5; }
+.naive b { font-variant-numeric: tabular-nums; }
+
+.split-head { display: flex; gap: 4px; padding: 10px 14px 0; flex-wrap: wrap; align-items: center; }
+.tab { border: 0; background: transparent; padding: 6px 10px; border-radius: 8px; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.split-head .spacer { flex: 1; }
+.toast { font-size: 0.8rem; color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px; min-height: 40px; max-height: 420px; overflow-y: auto; }
+.chip { font-family: var(--font-my); font-size: 1.05rem; line-height: 1.9; padding: 0 9px; border-radius: 6px; background: var(--chip-a); }
+.chip:nth-child(even) { background: var(--chip-b); }
+.empty, .more { color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+.more { padding: 0 14px 14px; margin: 0; }
+
+.faq h2 { font-size: 1.05rem; margin: 8px 0 4px; }
+.faq details { border-top: 1px solid var(--line); padding: 10px 0; }
+.faq details:last-of-type { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; font-weight: 600; line-height: 1.7; }
+.faq summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.faq p { margin: 6px 0 0; color: var(--muted); line-height: 1.75; max-width: 68ch; }
+html[lang="my"] .faq p { line-height: 2; }
+
+footer { color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+footer a { color: var(--accent); }
+footer { border-top: 1px solid var(--line); padding-top: 16px; }
+footer h2 { margin: 0 0 6px; }
+.lic { margin: 0 0 8px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+footer p { margin: 0; }
+.mono { font-family: var(--font-mono); font-size: 0.85em; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true">က</div>
+      <div style="min-width:0">
+        <h1 data-i18n="title">Burmese Word Counter</h1>
+        <p class="sub" data-i18n="subtitle">Count words and syllables in Burmese text. Words are found with a dictionary, not by spaces.</p>
+      </div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="langEn" aria-pressed="true">English</button>
+      <button type="button" id="langMy" class="my" aria-pressed="false">မြန်မာ</button>
+    </div>
+  </header>
+
+  <section class="panel input" id="inputPanel">
+    <div class="input-head">
+      <label class="label" for="src" data-i18n="textLabel">Your text</label>
+      <span class="tag" id="sampleTag" data-i18n="sampleTag">Sample text</span>
+    </div>
+    <textarea id="src" spellcheck="false" lang="my"></textarea>
+    <div class="actions">
+      <button id="clearBtn" type="button" data-i18n="clear">Clear</button>
+      <button id="sampleBtn" type="button" data-i18n="sample">Load sample</button>
+      <label class="btn"><input type="file" id="fileIn" accept=".txt,text/plain"><span data-i18n="open">Open .txt file</span></label>
+      <span class="note" data-i18n="drop">or drop a .txt file here</span>
+    </div>
+  </section>
+
+  <div class="banner warn" id="zgWarn" hidden>
+    <p data-i18n="zgWarn">This text looks like Zawgyi, an older encoding. Counts will be wrong until it's in Unicode.</p>
+    <button type="button" class="primary" id="convertBtn" data-i18n="convert">Convert to Unicode</button>
+  </div>
+  <div class="banner ok" id="zgDone" hidden>
+    <p data-i18n="zgDone">Converted from Zawgyi to Unicode.</p>
+    <button type="button" id="undoBtn" data-i18n="undo">Undo</button>
+  </div>
+  <div class="banner warn" id="noSeg" hidden>
+    <p data-i18n="noSeg">This browser can't split Burmese into words. Try Chrome, Edge or Safari. Syllable counts still work.</p>
+  </div>
+  <div class="banner warn" id="weakSeg" hidden>
+    <p data-i18n="weakSeg">This browser seems to be missing its Burmese dictionary, so word counts may be too low. Try Chrome, Edge or Safari.</p>
+  </div>
+
+  <section class="stats" aria-live="polite">
+    <div class="panel stat primary">
+      <span class="label" data-i18n="words">Words</span>
+      <span class="num" id="nWords">0</span>
+      <span class="naive" id="naive"></span>
+    </div>
+    <div class="panel stat">
+      <span class="label" data-i18n="syllables">Syllables</span>
+      <span class="num" id="nSyl">0</span>
+      <span class="hint" data-i18n="sylHint">Most stable count</span>
+    </div>
+    <div class="panel stat">
+      <span class="label" data-i18n="sentences">Sentences</span>
+      <span class="num" id="nSent">0</span>
+      <span class="hint" data-i18n="sentHint">Ending in ။ ? or !</span>
+    </div>
+    <div class="panel stat">
+      <span class="label" data-i18n="chars">Characters</span>
+      <span class="num" id="nChar">0</span>
+      <span class="hint" data-i18n="charHint">Excluding spaces</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="split-head" role="tablist">
+      <button class="tab" role="tab" id="tabWords" aria-selected="true" type="button" data-i18n="tabWords">Words</button>
+      <button class="tab" role="tab" id="tabSyl" aria-selected="false" type="button" data-i18n="tabSyl">Syllables</button>
+      <span class="spacer"></span>
+      <span class="toast" id="toast" hidden data-i18n="copied">Copied</span>
+      <button id="copyCounts" type="button" data-i18n="copyCounts">Copy counts</button>
+      <button id="copySplit" type="button" data-i18n="copySplit">Copy split text</button>
+    </div>
+    <div class="chips" id="chips" lang="my"></div>
+    <p class="more" id="more" hidden></p>
+  </section>
+
+  <section class="faq">
+    <h2 data-i18n="faqTitle">About counting Burmese</h2>
+    <details open>
+      <summary data-i18n="q1">Why do normal word counters get Burmese wrong?</summary>
+      <p data-i18n="a1">Burmese doesn't put spaces between words. Spaces mark phrases, so counting by spaces gives a number that is far too low.</p>
+    </details>
+    <details>
+      <summary data-i18n="q2">Should I use words or syllables?</summary>
+      <p data-i18n="a2">Word boundaries in Burmese are debatable, so different tools give slightly different word counts. Syllable counts are stable, which is why many translation jobs are priced per syllable.</p>
+    </details>
+    <details>
+      <summary data-i18n="q3">What is Zawgyi?</summary>
+      <p data-i18n="a3">Zawgyi is an older font encoding. It looks like Burmese but stores letters in a different order, so tools can't read it correctly. This page detects Zawgyi and can convert it to standard Unicode.</p>
+    </details>
+    <details>
+      <summary data-i18n="q4">How does it work? Is my text private?</summary>
+      <p data-i18n="a4">Words come from your browser's built-in Burmese dictionary (ICU). Syllables are split with rules based on Ye Kyaw Thu's sylbreak. Everything runs in your browser, and your text is never uploaded.</p>
+    </details>
+  </section>
+
+  <footer>
+    <h2 class="label" data-i18n="licTitle">Credits and licenses</h2>
+    <ul class="lic">
+      <li><span data-i18n="lic1">Syllable rules adapted from</span> <a href="https://github.com/ye-kyaw-thu/sylbreak" target="_blank" rel="noopener">sylbreak</a> <span lang="en">by Ye Kyaw Thu, licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache License 2.0</a>. Changed: the breaking pattern was rewritten in JavaScript.</span></li>
+      <li><span data-i18n="lic2">Zawgyi conversion by</span> <a href="https://github.com/Rabbit-Converter/Rabbit" target="_blank" rel="noopener">Rabbit</a> <span lang="en">(rabbit-node 1.0.4, unmodified). Copyright © 2015 Rabbit-Converter. <a href="https://opensource.org/license/mit" target="_blank" rel="noopener">MIT License</a>. Provided as is, without warranty.</span></li>
+      <li><span data-i18n="lic3">Word splitting uses your browser's built-in ICU library. Fonts from Google Fonts (SIL Open Font License).</span></li>
+    </ul>
+    <p data-i18n="disclaimer">Counts are estimates. Check important numbers, such as for invoices, by hand.</p>
+  </footer>
+</div>
+
+<script>
+const I18N = {
+  en: {
+    title: "Burmese Word Counter",
+    subtitle: "Count words and syllables in Burmese text. Words are found with a dictionary, not by spaces.",
+    textLabel: "Your text", sampleTag: "Sample text", clear: "Clear", sample: "Load sample",
+    open: "Open .txt file", drop: "or drop a .txt file here",
+    zgWarn: "This text looks like Zawgyi, an older encoding. Counts will be wrong until it's in Unicode.",
+    convert: "Convert to Unicode", zgDone: "Converted from Zawgyi to Unicode.", undo: "Undo",
+    convertFail: "The converter didn't load. Convert the text with a Zawgyi converter, then paste it here.",
+    noSeg: "This browser can't split Burmese into words. Try Chrome, Edge or Safari. Syllable counts still work.",
+    weakSeg: "This browser seems to be missing its Burmese dictionary, so word counts may be too low. Try Chrome, Edge or Safari.",
+    words: "Words", syllables: "Syllables", sentences: "Sentences", chars: "Characters",
+    sylHint: "Most stable count", sentHint: "Ending in ။ ? or !", charHint: "Excluding spaces",
+    naive: n => `A normal counter would say <b>${n}</b>`,
+    tabWords: "Words", tabSyl: "Syllables", copied: "Copied", copyCounts: "Copy counts", copySplit: "Copy split text",
+    empty: "Paste text above to see how it splits.", nothing: "Nothing to count yet.",
+    more: (n, t) => `Showing the first ${n} of ${t}. The counts include everything.`,
+    countsLine: c => `Words: ${c.w} · Syllables: ${c.s} · Sentences: ${c.n} · Characters: ${c.c}`,
+    fileErr: "That file couldn't be read. Use a plain .txt file saved as UTF-8.",
+    faqTitle: "About counting Burmese",
+    q1: "Why do normal word counters get Burmese wrong?",
+    a1: "Burmese doesn't put spaces between words. Spaces mark phrases, so counting by spaces gives a number that is far too low.",
+    q2: "Should I use words or syllables?",
+    a2: "Word boundaries in Burmese are debatable, so different tools give slightly different word counts. Syllable counts are stable, which is why many translation jobs are priced per syllable.",
+    q3: "What is Zawgyi?",
+    a3: "Zawgyi is an older font encoding. It looks like Burmese but stores letters in a different order, so tools can't read it correctly. This page detects Zawgyi and can convert it to standard Unicode.",
+    q4: "How does it work? Is my text private?",
+    a4: "Words come from your browser's built-in Burmese dictionary (ICU). Syllables are split with rules based on Ye Kyaw Thu's sylbreak. Everything runs in your browser, and your text is never uploaded.",
+    licTitle: "Credits and licenses", lic1: "Syllable rules adapted from", lic2: "Zawgyi conversion by",
+    lic3: "Word splitting uses your browser's built-in ICU library. Fonts from Google Fonts (SIL Open Font License).",
+    disclaimer: "Counts are estimates. Check important numbers, such as for invoices, by hand."
+  },
+  my: {
+    title: "မြန်မာ စကားလုံး ရေတွက်စနစ်",
+    subtitle: "မြန်မာစာသားရှိ စကားလုံးနှင့် ဝဏ္ဏများကို ရေတွက်ပါ။ စကားလုံးများကို နေရာလွတ်ဖြင့် မဟုတ်ဘဲ အဘိဓာန်ဖြင့် ခွဲခြားပါသည်။",
+    textLabel: "စာသား", sampleTag: "နမူနာ စာသား", clear: "ရှင်းမည်", sample: "နမူနာ ထည့်မည်",
+    open: ".txt ဖိုင် ဖွင့်မည်", drop: "သို့မဟုတ် .txt ဖိုင်ကို ဤနေရာသို့ ဆွဲထည့်ပါ",
+    zgWarn: "ဤစာသားသည် ဇော်ဂျီ ဖြစ်ပုံရပါသည်။ ယူနီကုဒ်သို့ မပြောင်းမချင်း အရေအတွက် မှားနေပါမည်။",
+    convert: "ယူနီကုဒ်သို့ ပြောင်းမည်", zgDone: "ဇော်ဂျီမှ ယူနီကုဒ်သို့ ပြောင်းပြီးပါပြီ။", undo: "မူလအတိုင်း ပြန်ထားမည်",
+    convertFail: "ပြောင်းလဲစနစ် မတက်လာပါ။ ဇော်ဂျီ ပြောင်းလဲစနစ် တစ်ခုဖြင့် ပြောင်းပြီးမှ ဤနေရာတွင် ကူးထည့်ပါ။",
+    noSeg: "ဤဘရောက်ဇာသည် မြန်မာ စကားလုံးများကို မခွဲနိုင်ပါ။ Chrome၊ Edge သို့မဟုတ် Safari ဖြင့် စမ်းကြည့်ပါ။ ဝဏ္ဏ အရေအတွက်ကမူ မှန်ကန်ပါသည်။",
+    weakSeg: "ဤဘရောက်ဇာတွင် မြန်မာ အဘိဓာန် မပါပုံရသဖြင့် စကားလုံး အရေအတွက် နည်းနေနိုင်ပါသည်။ Chrome၊ Edge သို့မဟုတ် Safari ဖြင့် စမ်းကြည့်ပါ။",
+    words: "စကားလုံး", syllables: "ဝဏ္ဏ", sentences: "ဝါကျ", chars: "အက္ခရာ",
+    sylHint: "အတည်ငြိမ်ဆုံး အရေအတွက်", sentHint: "။ ? ! ဖြင့် ဆုံးသော", charHint: "နေရာလွတ် မပါ",
+    naive: n => `သာမန် ရေတွက်စနစ်ဖြင့်ဆိုလျှင် <b>${n}</b>`,
+    tabWords: "စကားလုံး", tabSyl: "ဝဏ္ဏ", copied: "ကူးပြီးပါပြီ", copyCounts: "အရေအတွက် ကူးမည်", copySplit: "ခွဲထားသော စာသား ကူးမည်",
+    empty: "ခွဲခြားပုံကို ကြည့်ရန် အပေါ်တွင် စာသား ကူးထည့်ပါ။", nothing: "ရေတွက်စရာ မရှိသေးပါ။",
+    more: (n, t) => `စုစုပေါင်း ${t} ခုအနက် ပထမ ${n} ခုကိုသာ ပြထားပါသည်။ အရေအတွက်တွင် အားလုံး ပါဝင်ပါသည်။`,
+    countsLine: c => `စကားလုံး - ${c.w} · ဝဏ္ဏ - ${c.s} · ဝါကျ - ${c.n} · အက္ခရာ - ${c.c}`,
+    fileErr: "ဤဖိုင်ကို ဖတ်၍ မရပါ။ UTF-8 ဖြင့် သိမ်းထားသော .txt ဖိုင်ကို သုံးပါ။",
+    faqTitle: "မြန်မာစာ ရေတွက်ခြင်းအကြောင်း",
+    q1: "သာမန် စကားလုံးရေတွက်စနစ်များက မြန်မာစာကို ဘာကြောင့် မှားရေတွက်သနည်း။",
+    a1: "မြန်မာစာတွင် စကားလုံးများကြား နေရာလွတ် မထားပါ။ နေရာလွတ်သည် စကားစုများကိုသာ ခွဲပေးသဖြင့် နေရာလွတ်ဖြင့် ရေတွက်လျှင် အရေအတွက် အလွန်နည်းနေပါမည်။",
+    q2: "စကားလုံး သို့မဟုတ် ဝဏ္ဏ ဘယ်ဟာကို သုံးသင့်သနည်း။",
+    a2: "မြန်မာ စကားလုံး နယ်နိမိတ်သည် အငြင်းပွားဖွယ် ဖြစ်သဖြင့် ကိရိယာအလိုက် စကားလုံး အရေအတွက် အနည်းငယ် ကွာခြားနိုင်ပါသည်။ ဝဏ္ဏ အရေအတွက်ကမူ တည်ငြိမ်သဖြင့် ဘာသာပြန် လုပ်ငန်းများစွာက ဝဏ္ဏဖြင့် ဈေးနှုန်း သတ်မှတ်ကြပါသည်။",
+    q3: "ဇော်ဂျီ ဆိုသည်မှာ အဘယ်နည်း။",
+    a3: "ဇော်ဂျီသည် ဖောင့်စနစ်ဟောင်း တစ်ခု ဖြစ်ပါသည်။ မြန်မာစာနှင့် တူသော်လည်း စာလုံးများကို အစီအစဉ် ကွဲပြားစွာ သိမ်းဆည်းသဖြင့် ကိရိယာများက မှန်ကန်စွာ မဖတ်နိုင်ပါ။ ဤစာမျက်နှာက ဇော်ဂျီကို ရှာဖွေပြီး ယူနီကုဒ်သို့ ပြောင်းပေးနိုင်ပါသည်။",
+    q4: "မည်သို့ အလုပ်လုပ်သနည်း။ ကျွန်ုပ်၏ စာသား လုံခြုံပါသလား။",
+    a4: "စကားလုံးများကို ဘရောက်ဇာ၏ မြန်မာ အဘိဓာန် (ICU) ဖြင့် ခွဲပါသည်။ ဝဏ္ဏများကို ရဲကျော်သူ၏ sylbreak အပေါ် အခြေခံသော စည်းမျဉ်းများဖြင့် ခွဲပါသည်။ အားလုံးကို သင့်ဘရောက်ဇာထဲတွင်သာ လုပ်ဆောင်ပြီး သင့်စာသားကို မည်သည့်နေရာသို့မျှ မပို့ပါ။",
+    licTitle: "ကျေးဇူးတင်လွှာနှင့် လိုင်စင်များ", lic1: "ဝဏ္ဏ ခွဲစည်းမျဉ်းကို အောက်ပါမှ ယူထားသည် -", lic2: "ဇော်ဂျီ ပြောင်းလဲခြင်း -",
+    lic3: "စကားလုံး ခွဲခြင်းကို ဘရောက်ဇာ၏ ICU ဖြင့် လုပ်ဆောင်သည်။ ဖောင့်များမှာ Google Fonts (SIL Open Font License) မှ ဖြစ်သည်။",
+    disclaimer: "အရေအတွက်များသည် ခန့်မှန်းချက်များ ဖြစ်ပါသည်။ ငွေတောင်းခံလွှာကဲ့သို့ အရေးကြီးသော ကိန်းဂဏန်းများကို ကိုယ်တိုင် ပြန်စစ်ပါ။"
+  }
+};
+
+const SAMPLE = "မြန်မာနိုင်ငံသည် အရှေ့တောင်အာရှတွင် တည်ရှိသည်။ ရန်ကုန်မြို့သည် နိုင်ငံ၏ အကြီးဆုံးမြို့ ဖြစ်သည်။ မြန်မာစာကို စကားလုံးများကြား နေရာလွတ်မထားဘဲ ရေးသားလေ့ရှိသည်။";
+const CHIP_LIMIT = 1500;
+
+const $ = id => document.getElementById(id);
+const src = $("src");
+let lang = "en";
+let view = "words";
+let last = { words: [], syls: [], counts: null };
+let beforeConvert = null;
+
+// ---------- language ----------
+const nfMy = (() => { try { return new Intl.NumberFormat("my-MM", { numberingSystem: "mymr" }); } catch (e) { return null; } })();
+const nfEn = new Intl.NumberFormat("en-US");
+const fmt = n => (lang === "my" && nfMy ? nfMy : nfEn).format(n);
+const t = k => I18N[lang][k];
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = lang === "my" ? "မြန်မာ စကားလုံး ရေတွက်စနစ် · Burmese Word Counter" : "Burmese Word Counter";
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const v = I18N[lang][el.dataset.i18n];
+    if (typeof v === "string") el.textContent = v;
+  });
+  $("langEn").setAttribute("aria-pressed", lang === "en");
+  $("langMy").setAttribute("aria-pressed", lang === "my");
+  render();
+}
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem("bwc-lang", l); } catch (e) {}
+  applyLang();
+}
+try {
+  const saved = localStorage.getItem("bwc-lang");
+  if (saved === "en" || saved === "my") lang = saved;
+  else if ((navigator.language || "").toLowerCase().startsWith("my")) lang = "my";
+} catch (e) {}
+
+// ---------- segmentation ----------
+let wordSeg = null, graphSeg = null;
+try {
+  wordSeg = new Intl.Segmenter("my", { granularity: "word" });
+  graphSeg = new Intl.Segmenter("my", { granularity: "grapheme" });
+} catch (e) { wordSeg = null; }
+
+// Syllable breaking after Ye Kyaw Thu's sylbreak: break before a consonant that is not
+// stacked (after ္) and not killed (before ် or ္), and before independent vowels,
+// digits, punctuation, Latin letters and whitespace.
+const SYL_RE = /((?<!္)[က-အ](?![်္])|[a-zA-Z0-9ဣဤဥဦဧဩဪဿ၌၍၏၀-၉၊။!-\/:-@\[-`{-~\s])/g;
+const HAS_CONTENT = /[က-႟a-zA-Z0-9]/;
+const PUNCT_ONLY = /^[၊။\s!-\/:-@\[-`{-~]+$/;
+const MY_LETTER = /[က-အ]/;
+
+function syllables(text) {
+  const parts = text.replace(SYL_RE, "\u0001$1").split("\u0001");
+  const out = [];
+  for (let p of parts) {
+    p = p.trim();
+    if (!p || PUNCT_ONLY.test(p) || !HAS_CONTENT.test(p)) continue;
+    out.push(p);
+  }
+  return out;
+}
+function words(text) {
+  if (!wordSeg) return null;
+  const out = [];
+  for (const s of wordSeg.segment(text)) if (s.isWordLike) out.push(s.segment);
+  return out;
+}
+function charCount(text) {
+  const s = text.replace(/\s/g, "");
+  if (graphSeg) { let n = 0; for (const _ of graphSeg.segment(s)) n++; return n; }
+  return [...s].length;
+}
+function sentenceCount(text) {
+  return text.split(/[။?!]+/).filter(x => HAS_CONTENT.test(x)).length;
+}
+
+// ---------- Zawgyi ----------
+// Conversion uses Rabbit (MIT), loaded on demand from the CDN.
+let zgConverter = null, zgLoadFailed = false;
+(() => {
+  const s = document.createElement("script");
+  s.src = "https://cdn.jsdelivr.net/npm/rabbit-node@1.0.4/dist/rabbit.min.js";
+  s.onload = () => { if (window.Rabbit && window.Rabbit.zg2uni) zgConverter = window.Rabbit; else zgLoadFailed = true; render(); };
+  s.onerror = () => { zgLoadFailed = true; render(); };
+  document.head.appendChild(s);
+})();
+
+function looksZawgyi(text) {
+  if (!MY_LETTER.test(text)) return false;
+  // Unicode never starts a word with ေ (it follows its consonant); Zawgyi types it first.
+  if (/(^|[\s၊။])[ေျ]/.test(text)) return true;
+  // Unicode's U+1039 always stacks onto a consonant; Zawgyi uses it as the killer mark.
+  if (/္(?![က-အ])/.test(text)) return true;
+  // Zawgyi stores stacked and medial forms in U+1060–U+1097.
+  return /[ၠ-႗]/.test(text);
+}
+
+// ---------- render ----------
+let timer = null;
+function scheduleRender() { clearTimeout(timer); timer = setTimeout(render, src.value.length > 20000 ? 250 : 60); }
+
+function render() {
+  const text = src.value;
+  const w = words(text);
+  const s = syllables(text);
+  const counts = { w: w ? w.length : 0, s: s.length, n: sentenceCount(text), c: charCount(text) };
+  const naive = text.trim() ? text.trim().split(/\s+/).length : 0;
+  last = { words: w || [], syls: s, counts };
+
+  $("nWords").textContent = w ? fmt(counts.w) : "—";
+  $("nSyl").textContent = fmt(counts.s);
+  $("nSent").textContent = fmt(counts.n);
+  $("nChar").textContent = fmt(counts.c);
+  $("naive").innerHTML = text.trim() ? t("naive")(fmt(naive)) : "";
+  $("sampleTag").hidden = text !== SAMPLE;
+
+  $("noSeg").hidden = !!wordSeg;
+  // A working Burmese dictionary rarely returns a "word" longer than ~8 syllables.
+  let weak = false;
+  if (w && s.length >= 12) {
+    for (const x of w) { if (MY_LETTER.test(x) && syllables(x).length > 10) { weak = true; break; } }
+  }
+  $("weakSeg").hidden = !weak;
+
+  const zg = !beforeConvert && looksZawgyi(text);
+  $("zgWarn").hidden = !zg;
+  if (zg) {
+    $("zgWarn").querySelector("p").textContent = zgLoadFailed ? t("convertFail") : t("zgWarn");
+    $("convertBtn").hidden = zgLoadFailed;
+    $("convertBtn").disabled = !zgConverter;
+  }
+  $("zgDone").hidden = !beforeConvert;
+
+  const list = view === "words" ? last.words : last.syls;
+  const box = $("chips");
+  box.textContent = "";
+  $("more").hidden = true;
+  if (!list.length) {
+    const e = document.createElement("span");
+    e.className = "empty";
+    e.textContent = text.trim() ? t("nothing") : t("empty");
+    box.appendChild(e);
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  const n = Math.min(list.length, CHIP_LIMIT);
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement("span");
+    c.className = "chip";
+    c.textContent = list[i];
+    frag.appendChild(c);
+  }
+  box.appendChild(frag);
+  if (list.length > CHIP_LIMIT) {
+    $("more").textContent = t("more")(fmt(CHIP_LIMIT), fmt(list.length));
+    $("more").hidden = false;
+  }
+}
+
+function setView(v) {
+  view = v;
+  $("tabWords").setAttribute("aria-selected", v === "words");
+  $("tabSyl").setAttribute("aria-selected", v === "syls");
+  render();
+}
+
+// ---------- copy ----------
+function flash() { const el = $("toast"); el.hidden = false; clearTimeout(flash.t); flash.t = setTimeout(() => el.hidden = true, 1400); }
+function copyText(out) {
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = out; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); flash(); } catch (e) {}
+    ta.remove();
+  };
+  try { navigator.clipboard.writeText(out).then(flash).catch(fallback); } catch (e) { fallback(); }
+}
+$("copySplit").addEventListener("click", () => copyText((view === "words" ? last.words : last.syls).join(" ")));
+$("copyCounts").addEventListener("click", () => {
+  const c = last.counts; if (!c) return;
+  copyText(t("countsLine")({ w: fmt(c.w), s: fmt(c.s), n: fmt(c.n), c: fmt(c.c) }));
+});
+
+// ---------- input, files, conversion ----------
+function setText(v) { src.value = v; beforeConvert = null; render(); }
+src.addEventListener("input", () => { beforeConvert = null; scheduleRender(); });
+$("clearBtn").addEventListener("click", () => { setText(""); src.focus(); });
+$("sampleBtn").addEventListener("click", () => setText(SAMPLE));
+$("tabWords").addEventListener("click", () => setView("words"));
+$("tabSyl").addEventListener("click", () => setView("syls"));
+$("langEn").addEventListener("click", () => setLang("en"));
+$("langMy").addEventListener("click", () => setLang("my"));
+
+$("convertBtn").addEventListener("click", () => {
+  if (!zgConverter) return;
+  const original = src.value;
+  try {
+    src.value = zgConverter.zg2uni(original);
+    beforeConvert = original;
+  } catch (e) { src.value = original; }
+  render();
+});
+$("undoBtn").addEventListener("click", () => {
+  if (beforeConvert === null) return;
+  src.value = beforeConvert; beforeConvert = null;
+  // keep the warning hidden only until the user edits again
+  render();
+});
+
+function readFile(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => setText(String(r.result || ""));
+  r.onerror = () => { src.value = ""; render(); $("chips").textContent = t("fileErr"); };
+  r.readAsText(file, "utf-8");
+}
+$("fileIn").addEventListener("change", e => { readFile(e.target.files[0]); e.target.value = ""; });
+const panel = $("inputPanel");
+["dragenter", "dragover"].forEach(ev => panel.addEventListener(ev, e => {
+  if (e.dataTransfer && [...e.dataTransfer.types].includes("Files")) { e.preventDefault(); panel.classList.add("drag"); }
+}));
+["dragleave", "drop"].forEach(ev => panel.addEventListener(ev, () => panel.classList.remove("drag")));
+panel.addEventListener("drop", e => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) { e.preventDefault(); readFile(f); }
+});
+
+src.value = SAMPLE;
+applyLang();
+</script>
+
+</body>
+</html>
