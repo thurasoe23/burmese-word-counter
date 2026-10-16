@@ -3,18 +3,105 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Burmese Word Counter</title>
-<meta name="description" content="Free Burmese (Myanmar) word counter. Count words, syllables and sentences, and convert Zawgyi to Unicode. Runs in your browser.">
+<title>Burmese Word Counter – Free Myanmar Word &amp; Syllable Counter</title>
+<meta name="description" content="Free Burmese (Myanmar) word counter. Count words, syllables and sentences in Myanmar text, and convert Zawgyi to Unicode. Private and runs in your browser.">
+<link rel="canonical" href="https://thurasoe23.github.io/burmese-word-counter/">
+<meta name="robots" content="index, follow">
 <meta name="theme-color" content="#1d2a2a">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Burmese Word Counter">
+<meta property="og:site_name" content="Burmese Word Counter">
+<meta property="og:title" content="Burmese Word Counter – Free Myanmar Word &amp; Syllable Counter">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="my_MM">
 <meta property="og:description" content="Count words, syllables and sentences in Burmese text, and convert Zawgyi to Unicode.">
 <meta property="og:image" content="https://thurasoe23.github.io/burmese-word-counter/og-image.png"><meta property="og:url" content="https://thurasoe23.github.io/burmese-word-counter/">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[
+ {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Burmese Word Counter",
+  "alternateName": [
+   "Myanmar Word Counter",
+   "Burmese Syllable Counter",
+   "မြန်မာ စကားလုံး ရေတွက်စနစ်"
+  ],
+  "url": "https://thurasoe23.github.io/burmese-word-counter/",
+  "description": "Free Burmese (Myanmar) word counter. Count words, syllables and sentences in Myanmar text, and convert Zawgyi to Unicode. Private and runs in your browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any (web browser)",
+  "inLanguage": [
+   "en",
+   "my"
+  ],
+  "isAccessibleForFree": true,
+  "offers": {
+   "@type": "Offer",
+   "price": "0",
+   "priceCurrency": "USD"
+  },
+  "image": "https://thurasoe23.github.io/burmese-word-counter/og-image.png",
+  "featureList": [
+   "Burmese word count",
+   "Myanmar syllable count",
+   "Sentence and character count",
+   "Zawgyi to Unicode conversion",
+   "English and Burmese interface"
+  ]
+ },
+ {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+   {
+    "@type": "Question",
+    "name": "Why do normal word counters get Burmese wrong?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Burmese doesn't put spaces between words. Spaces mark phrases, so counting by spaces gives a number that is far too low."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "Should I use words or syllables?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Word boundaries in Burmese are debatable, so different tools give slightly different word counts. Syllable counts are stable, which is why many translation jobs are priced per syllable."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "What is Zawgyi?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Zawgyi is an older font encoding. It looks like Burmese but stores letters in a different order, so tools can't read it correctly. This page detects Zawgyi and can convert it to standard Unicode."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "How does it work? Is my text private?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Words come from your browser's built-in Burmese dictionary (ICU). Syllables are split with rules based on Ye Kyaw Thu's sylbreak. Everything runs in your browser, and your text is never uploaded."
+    }
+   },
+   {
+    "@type": "Question",
+    "name": "Is it free?",
+    "acceptedAnswer": {
+     "@type": "Answer",
+     "text": "Yes. It's free, needs no sign-up, and works on phones and computers."
+    }
+   }
+  ]
+ }
+]
+</script>
 <style>
 :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 *, *::before, *::after { box-sizing: border-box; }
@@ -23,6 +110,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one working column — header with language switch, input, counts, split view, then a short FAQ */
@@ -99,7 +187,7 @@ textarea {
   font-family: var(--font-my); font-size: 1.1rem; line-height: 2;
 }
 textarea:focus { outline: none; }
-.panel.input:focus-within { border-color: var(--accent); }
+.panel.input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 0 14px 14px; }
 .actions .note { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
 
@@ -109,7 +197,8 @@ button, .btn {
   padding: 6px 12px; border-radius: 8px; line-height: 1.5;
 }
 button:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
-button:focus-visible, .btn:focus-within, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, .btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea:focus-visible { outline: none; }
 .btn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .btn { position: relative; display: inline-block; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -154,6 +243,9 @@ html[lang="my"] .faq p { line-height: 2; }
 
 footer { color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
 footer a { color: var(--accent); }
+.about-my { border-top: 1px solid var(--line); padding-top: 16px; }
+.about-my h2 { font-family: var(--font-my); font-size: 1.05rem; margin: 0 0 4px; line-height: 1.8; }
+.about-my p { font-family: var(--font-my); color: var(--muted); line-height: 2; margin: 0; max-width: 68ch; }
 footer { border-top: 1px solid var(--line); padding-top: 16px; }
 footer h2 { margin: 0 0 6px; }
 .lic { margin: 0 0 8px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
@@ -169,7 +261,7 @@ footer p { margin: 0; }
       <div class="mark" aria-hidden="true">က</div>
       <div style="min-width:0">
         <h1 data-i18n="title">Burmese Word Counter</h1>
-        <p class="sub" data-i18n="subtitle">Count words and syllables in Burmese text. Words are found with a dictionary, not by spaces.</p>
+        <p class="sub" data-i18n="subtitle">Free Burmese (Myanmar) word counter. Count words and syllables in Myanmar text. Words are found with a dictionary, not by spaces.</p>
       </div>
     </div>
     <div class="lang" role="group" aria-label="Language">
@@ -261,7 +353,17 @@ footer p { margin: 0; }
       <summary data-i18n="q4">How does it work? Is my text private?</summary>
       <p data-i18n="a4">Words come from your browser's built-in Burmese dictionary (ICU). Syllables are split with rules based on Ye Kyaw Thu's sylbreak. Everything runs in your browser, and your text is never uploaded.</p>
     </details>
+    <details>
+      <summary data-i18n="q5">Is it free?</summary>
+      <p data-i18n="a5">Yes. It's free, needs no sign-up, and works on phones and computers.</p>
+    </details>
   </section>
+
+  <section class="about-my" id="aboutMy" lang="my">
+    <h2>မြန်မာ စကားလုံး ရေတွက်စနစ်</h2>
+    <p>မြန်မာစာ (ယူနီကုဒ်) စာသားရှိ စကားလုံး၊ ဝဏ္ဏ၊ ဝါကျ အရေအတွက်ကို အခမဲ့ ရေတွက်ပေးသည့် ကိရိယာ ဖြစ်ပါသည်။ ဇော်ဂျီ စာသားကိုလည်း ယူနီကုဒ်သို့ ပြောင်းပေးနိုင်ပါသည်။ ဘာသာပြန်သူများ၊ စာရေးသူများနှင့် ကျောင်းသားများအတွက် အသုံးဝင်ပါသည်။ အပေါ်ရှိ «မြန်မာ» ခလုတ်ကို နှိပ်၍ မြန်မာလို အသုံးပြုနိုင်ပါသည်။</p>
+  </section>
+  <noscript><p class="about-my">This word counter needs JavaScript to run. Please turn it on in your browser.</p></noscript>
 
   <footer>
     <h2 class="label" data-i18n="licTitle">Credits and licenses</h2>
@@ -278,7 +380,7 @@ footer p { margin: 0; }
 const I18N = {
   en: {
     title: "Burmese Word Counter",
-    subtitle: "Count words and syllables in Burmese text. Words are found with a dictionary, not by spaces.",
+    subtitle: "Free Burmese (Myanmar) word counter. Count words and syllables in Myanmar text. Words are found with a dictionary, not by spaces.",
     textLabel: "Your text", sampleTag: "Sample text", clear: "Clear", sample: "Load sample",
     open: "Open .txt file", drop: "or drop a .txt file here",
     zgWarn: "This text looks like Zawgyi, an older encoding. Counts will be wrong until it's in Unicode.",
@@ -303,6 +405,7 @@ const I18N = {
     a3: "Zawgyi is an older font encoding. It looks like Burmese but stores letters in a different order, so tools can't read it correctly. This page detects Zawgyi and can convert it to standard Unicode.",
     q4: "How does it work? Is my text private?",
     a4: "Words come from your browser's built-in Burmese dictionary (ICU). Syllables are split with rules based on Ye Kyaw Thu's sylbreak. Everything runs in your browser, and your text is never uploaded.",
+    q5: "Is it free?", a5: "Yes. It's free, needs no sign-up, and works on phones and computers.",
     licTitle: "Credits and licenses", lic1: "Syllable rules adapted from", lic2: "Zawgyi conversion by",
     lic3: "Word splitting uses your browser's built-in ICU library. Fonts from Google Fonts (SIL Open Font License).",
     disclaimer: "Counts are estimates. Check important numbers, such as for invoices, by hand."
@@ -334,6 +437,7 @@ const I18N = {
     a3: "ဇော်ဂျီသည် ဖောင့်စနစ်ဟောင်း တစ်ခု ဖြစ်ပါသည်။ မြန်မာစာနှင့် တူသော်လည်း စာလုံးများကို အစီအစဉ် ကွဲပြားစွာ သိမ်းဆည်းသဖြင့် ကိရိယာများက မှန်ကန်စွာ မဖတ်နိုင်ပါ။ ဤစာမျက်နှာက ဇော်ဂျီကို ရှာဖွေပြီး ယူနီကုဒ်သို့ ပြောင်းပေးနိုင်ပါသည်။",
     q4: "မည်သို့ အလုပ်လုပ်သနည်း။ ကျွန်ုပ်၏ စာသား လုံခြုံပါသလား။",
     a4: "စကားလုံးများကို ဘရောက်ဇာ၏ မြန်မာ အဘိဓာန် (ICU) ဖြင့် ခွဲပါသည်။ ဝဏ္ဏများကို ရဲကျော်သူ၏ sylbreak အပေါ် အခြေခံသော စည်းမျဉ်းများဖြင့် ခွဲပါသည်။ အားလုံးကို သင့်ဘရောက်ဇာထဲတွင်သာ လုပ်ဆောင်ပြီး သင့်စာသားကို မည်သည့်နေရာသို့မျှ မပို့ပါ။",
+    q5: "အခမဲ့ ဖြစ်ပါသလား။", a5: "ဟုတ်ကဲ့။ အခမဲ့ဖြစ်ပြီး အကောင့်ဖွင့်ရန် မလိုပါ။ ဖုန်းနှင့် ကွန်ပျူတာ နှစ်မျိုးလုံးတွင် သုံးနိုင်ပါသည်။",
     licTitle: "ကျေးဇူးတင်လွှာနှင့် လိုင်စင်များ", lic1: "ဝဏ္ဏ ခွဲစည်းမျဉ်းကို အောက်ပါမှ ယူထားသည် -", lic2: "ဇော်ဂျီ ပြောင်းလဲခြင်း -",
     lic3: "စကားလုံး ခွဲခြင်းကို ဘရောက်ဇာ၏ ICU ဖြင့် လုပ်ဆောင်သည်။ ဖောင့်များမှာ Google Fonts (SIL Open Font License) မှ ဖြစ်သည်။",
     disclaimer: "အရေအတွက်များသည် ခန့်မှန်းချက်များ ဖြစ်ပါသည်။ ငွေတောင်းခံလွှာကဲ့သို့ အရေးကြီးသော ကိန်းဂဏန်းများကို ကိုယ်တိုင် ပြန်စစ်ပါ။"
@@ -358,13 +462,14 @@ const t = k => I18N[lang][k];
 
 function applyLang() {
   document.documentElement.lang = lang;
-  document.title = lang === "my" ? "မြန်မာ စကားလုံး ရေတွက်စနစ် · Burmese Word Counter" : "Burmese Word Counter";
+  document.title = lang === "my" ? "မြန်မာ စကားလုံး ရေတွက်စနစ် · Burmese Word Counter" : "Burmese Word Counter – Free Myanmar Word & Syllable Counter";
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const v = I18N[lang][el.dataset.i18n];
     if (typeof v === "string") el.textContent = v;
   });
   $("langEn").setAttribute("aria-pressed", lang === "en");
   $("langMy").setAttribute("aria-pressed", lang === "my");
+  $("aboutMy").hidden = lang === "my";
   render();
 }
 function setLang(l) {
